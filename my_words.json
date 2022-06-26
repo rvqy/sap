@@ -1,6 +1,8 @@
 {
-    "noguess" : 1,
-    "timerush" : 2,
-    "standart" : 3,
-    "custom" : 4
+      "noguess": 1,
+      "timerush": 2,
+      "standart": 3,
+      "god": 4,
+      "classic": 5,
+      "challenge": 6
 }

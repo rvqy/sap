@@ -1,6 +1,4 @@
-import os
 import time
-import json
 import random
 import string
 from spellchecker import SpellChecker
@@ -9,16 +7,11 @@ class Player():
     """
     Player class
     """
-    def __init__(self, name=None):
-        if not name:
-            name = input("What is your name? ")
+    def __init__(self, name): 
         self.name = name
 
     def best_players():
         pass
-
-class BreakException(Exception):
-    pass
 
 class Board():
     """
@@ -177,24 +170,21 @@ class Board():
                 if self.board[index-self.width+1] == "X":
                     count_bombs += 1
                 self.board[index] = count_bombs
-        
-        self.display_board = [] # board which player sees
-        for item in self.board:
-            self.display_board.append("-") 
 
     def play_game(self):
+        self.display_board = [] # board which player sees
+        for item in self.board:
+            self.display_board.append("-")
+
         if game_mode == "noguess" or game_mode == "timerush": # display on the board random safe cell
             while True:
                 p = random.choice(range(0, ((self.height*self.width)-1)))
                 if self.board[p] == 0:
                     self.display_board[p] = "S"
-                    x1 = p % self.width
-                    y1 = (p-x1)/self.width
-                    y1 = int(y1)
                     break
                 else:
-                    continue
-       
+                    continue         
+
         for index, item in enumerate(self.display_board, start=1): # print board
             print("", item, end=" |" if index % self.width else "\n")
         game_over = False 
@@ -209,29 +199,17 @@ class Board():
                         separate_input = list(map(int, user_cell))
                         x = separate_input[0]
                         y = separate_input[1]
-                        idx = x + (y*(self.width)) # convert user x and y input to index in board[]
                     except ValueError:
                         print("Oops, that was no valid format. Try X Y.")
                     else:
                         if x > self.width-1 or y > self.height-1 or x < 0 or y < 0:
                             print("Out of range! Try again..")
-
-                        elif move == 0 and (game_mode == "noguess" or game_mode == "timerush"):  
-                            if self.display_board[idx] == "S":
-                                move += 1
-                                break
-                            else:
-                                print(f"You have to enter S position({x1}, {y1}) to start the game!")
-
                         else:
                             move += 1
                             break
 
                 elif len(user_cell) == 3:
-                    if move == 0:
-                        print("You cant flag on first move!")
-
-                    elif user_cell[2].lower() != "f":
+                    if user_cell[2].lower() != "f":
                         print("Wrong format! If you want to flag a cell try X Y F")
                         continue
 
@@ -240,13 +218,11 @@ class Board():
                             separate_input = list(map(int, user_cell[:2]))
                             x = separate_input[0]
                             y = separate_input[1]
-                            idx = x + (y*(self.width)) # convert user x and y input to index in board[]
                         except ValueError:
                             print("Oops, that was no valid format. Try X Y.")
                         else:
                             if x > self.width-1 or y > self.height-1 or x < 0 or y < 0:
                                 print("Out of range! Try again..")
-
                             else:
                                 move += 1
                                 break
@@ -256,7 +232,8 @@ class Board():
             if move == 1:
                 start_time = time.time()
 
-            print(move)
+            idx = x + (y*(self.width)) # convert user x and y input to index in board[]
+            print("")
 
             if len(user_cell) == 3:
                 if self.display_board[idx] == "F":
@@ -278,8 +255,7 @@ class Board():
                 elif self.board[idx] == "X":
                     self.display_board = self.board.copy()
                     game_over = True
-                    if game_mode == "timerush":
-                        raise BreakException()
+                    print("You lost!")
                     break
 
                 elif self.board[idx] > 0 and self.board[idx] < 9:
@@ -351,151 +327,70 @@ class Board():
             for index, item in enumerate(self.display_board, start=1):
                 print("", item, end=" |" if index % self.width else "\n")
             print()
-            if (self.display_board.count("-") + self.display_board.count("F")) == self.bombs and game_over == False and game_mode != "timerush": # if sum of flags and not opened cells equals to number of bombs than player wins
-                end_time = time.time()
-                elapsed_time = (end_time - start_time)
-                print("Congrats! Youw complete the board in", format(elapsed_time,".3f"), "seconds")
-                break
-            
-            elif (self.display_board.count("-") + self.display_board.count("F")) == self.bombs and game_over == False and game_mode == "timerush":
-                print("Wowk?!")
+            check_win = self.display_board.count("-") + self.display_board.count("F")
+
+            if check_win == self.bombs and game_over == False:
+                print("You won!")
                 break
 
         else:
-            print("Out of time!")
-            game_over = True
-            if game_mode == "timerush":
-                raise BreakException()
+            print("out of time")
             
-        if game_over == True and game_mode != "timerush":
-            for index, item in enumerate(self.board, start=1):
+        if game_over == True and game_mode == "timerush":
+            return
+            
+
+        if game_over == True:
+            for index, item in enumerate(self.display_board, start=1):
                 print("", item, end=" |" if index % self.width else "\n")
-            end_time = time.time()
-            elapsed_time = (end_time - start_time)
-            print("You lost! Elapsed time", format(elapsed_time,".3f"), "seconds.")
-            action = ""
-            while action not in ["m", "q"]:
-                action = input("Enter (m) for main menu, (r) to restart or (q) to quit: ").lower()
-                if action == "m":
-                    main_menu()
-                    break
-                
-                elif action == "q":
-                    print("Ending..")
-                    break
 
-                elif action == "r":
-                    game()
-                    break
-
-                else:
-                    print("try again..")
-
-        elif game_over == False and game_mode != "timerush":
-            action = ""
-            while action not in ["m", "q"]:
-                action = input("Enter (m) for main menu, (r) to restart or (q) to quit: ").lower()
-                if action == "m":
-                    main_menu()
-                    break
-
-                elif action == "r":
-                    game()
-                    break
-                
-                elif action == "q":
-                    print("Ending..")
-                    break
-
-                else:
-                    print("try again..")
-class Wordbook():
-    def __init__(self, words_data={}, corr_word=""):
-        self.words_data = words_data
-        self.corr_word = corr_word
-
-    def create_dictionary(self):
-        self.words_data = {
-    "noguess" : 1,
-    "timerush" : 2,
-    "standart" : 3,
-    "god" : 4,
-    "classic" : 5,
-    "challenge" : 6
-}   
-        json_object = json.dumps(self.words_data, indent = 6)
-        dict_name = 'my_words.json'
-        if os.path.exists(dict_name):
-            print('file already exists')
-        else:
-            with open(dict_name, 'w') as outfile:
-                outfile.write(json_object)
-    
-    def check_if_in_dict(self, word):
-        spell = SpellChecker(language=None, case_sensitive=None)
-        spell.word_frequency.load_dictionary("my_words.json")
-        global answer
-        answer = ""
-        if word in spell:
-            answer = "y"
-            self.corr_word = word
-            
-        else:
-            corr = spell.correction(word)
-            if corr not in spell:
-                answer = "n"
-                print("Word not in dictionary. Type again\n")
-                
-            if corr in spell:
-                while answer not in ["yes", "no", "y","n"]:
-                    answer = input(f"Do you mean {corr}? (Y/N): ").lower()
-                    if answer == "y":
-                        self.corr_word = corr
-                        break
-                    elif answer == "n":
-                        pass
-                        
-                    else:
-                        print("Please, enter (Y/N)")
-
-    def get_word(self):
-        return self.corr_word
-
-def game_setup():
-    """
-    Program beginns
-    """
-    set_wordbook = Wordbook()
-    set_wordbook.create_dictionary()
-
-    player_name = Player()
-    print(f"Welcome {player_name.name} to minesweeper game. \nYou can play classic game, with three difficulty levels or challenge yourself with TimeRush mode")
-    
+        end_time = time.time()
+        elapsed_time = (end_time - start_time)
+        print(format(elapsed_time,".3f"))
 
 def main_menu():
     """
     Minesweeper main menu
     """
-    dictionary = Wordbook()
-    while True:
-        global game_mode
-        game_mode = input("Select game mode standart, noguess, timerush or god: ").lower()
-        dictionary.check_if_in_dict(game_mode)
-        if answer == "y":
-            break
-        elif answer == "n":
-            continue
-
-    game_mode = dictionary.get_word()
-    game()
-
-def game():
-    easy = Board(9, 9, 10, 1200)
+    easy = Board(9, 9, 10, 30)
     medium = Board(16, 16, 40, 1200)
     advance = Board(16, 30, 100, 1200)
+    global game_mode
+    
+    spell = SpellChecker(language=None, case_sensitive=None)
+    spell.word_frequency.load_dictionary("/home/bestseller/Dokumenty/python/my_words.json")
+
+    while True:
+        answer = ""
+        game_mode = input("Select game mode standart, noguess, timerush or custom: ").lower()
+        if game_mode in spell:
+            break
+        else:
+            corr = spell.correction(game_mode)
+            if corr not in spell:
+                print("Select game mode again..\n")
+                continue
+
+            if corr in spell:
+                while answer not in ["yes", "no", "y","n"]:
+                    answer = input(f"Do you mean {corr}? (Y/N): ").lower()
+                    if answer == "y":
+                        game_mode = corr
+
+                    elif answer == "n":
+                        continue
+                        
+                    else:
+                        print("Please, enter (Y/N)")
+
+            if answer == "y":
+                break
+
+            if answer == "n":
+                continue
 
     if game_mode == "standart":
-        print("\nIn STANDART mode, a starting position is not provided, and you can hit bomb on first move.\n")
+        print("\nIn this mode, a starting position is not provided, and you can hit bomb on first move.\n")
         while True:
             difficulty = input("Select game dificulty E (easy), M (medium) , A (advance) or B (back): ").lower()
             if difficulty == "e" or difficulty == "m" or difficulty == "a" or difficulty == "b":
@@ -519,7 +414,7 @@ def game():
             main_menu()
 
     elif game_mode == "noguess":
-        print("\nIn NOGUESS mode, a starting position is provided, and you never need to guess to complete the board.\n")
+        print("\nIn this mode, a starting position is provided, and you never need to guess to complete the board.\n")
         while True:
             difficulty = input("Select game dificulty E (easy), M (medium) , A (advance) or B (back): ").lower()
             if difficulty == "e" or difficulty == "m" or difficulty == "a" or difficulty == "b":
@@ -544,60 +439,35 @@ def game():
             main_menu()
 
     elif game_mode == "timerush":
-        print("\nIn TIMERUSH mode you race against the clock, after each round time to complete the board is decreased dramatically.\nFirst round lasts 9min, 5 rounds must be completed to win.")
-        rnd = 0
-        try:
-            while True:
-                t = 540
-                if rnd < 5:
-                    if rnd != 0:
-                        t = t - (60*(rnd))
-                    print("Creating new board, please wait..")
-                    for i in range(3):
-                        print(i)
-                        time.sleep(1)
-                    timerush = Board(9, 9, 3, t)
-                    timerush.create_board()
-                    timerush.play_game()
-                    rnd += 1
-                else:
-                    break
-        except BreakException:
-            pass
-
-        if rnd == 5:
-            print("Whaat a beast, you won timerush mode!")
-
-        else:
-            print("You lost!")
-
-    elif game_mode == "god":
-        print("\nIn GOD mode, you can create custom board")
-        while True:
-            try:
-                h, w, b = [int(h) for h in input("Enter height, width and bombs in one line: ").split()]
-            except ValueError:
-                print("Oops, that was no valid format. Try width height bombs (9 9 10)")
+        print("In this mode you race against clock, after each round time to complete the board is decreasing dramatically.\nFirst round lasts 9min, 5 rounds must be completed to win.")
+        round = 0
+        t = 540
+        timerush = Board(9, 9, 10, t)
+        game_over = False
+        while game_over:
+            round += 1
+            if round < 5:
+                t = t - (60*(round-1))
+                print("Creating new board, please wait..")
+                for i in range(3):
+                    print(i)
+                    time.sleep(1)
+                timerush.create_board()
+                timerush.play_game()
             else:
-                if h * w <= b:
-                    print("You cant have more bombs than cells!")
-                
-                elif b < 0:
-                    print("You need at least one bomb on board..")
-                
-                elif h > 30 or w > 30:
-                    print("Max height and width 30x30!")
+                break
 
-                elif h < 2 or w < 2:
-                    print("Min height and width 2x2!")
-                
-                else:
-                    break
-
-        god = Board(h, w, b, 1200)
-        god.create_board()
-        god.play_game()
-
+    elif game_mode == "custom":
+        h, w, b = [int(h) for h in input("Enter height, width and bombs in one line: ").split()]
+        custom = Board(h, w, b, 1200)
+        custom.create_board()
+        custom.play_game()
+        
 if __name__ == '__main__':
-    game_setup()
     main_menu()
+                    
+            
+
+
+
+
