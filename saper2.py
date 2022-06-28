@@ -3,19 +3,60 @@ import time
 import json
 import random
 import string
+import pandas as pd
 from spellchecker import SpellChecker
 
-class Player():
-    """
-    Player class
-    """
-    def __init__(self, name=None):
-        if not name:
-            name = input("What is your name? ")
-        self.name = name
+class Leaderboard():
+    def __init__(self, scoreboard={}):
+        self.scoreboard = {
+            'Name': [],
+            'Time': [],
+            'Moves': []
+          }
 
-    def best_players():
-        pass
+    def create_leaderboard(self):
+        if os.path.exists("sb.csv"):
+            print('file already exists')
+        else:
+            df = pd.DataFrame(self.scoreboard)
+            df.to_csv("sb.csv")
+
+    def update_leaderboard(self, name, score , moves):
+        df = pd.read_csv("sb.csv",names=self.scoreboard, skiprows=[0])
+        df.loc[df.shape[0]] = [name, score, moves]
+        df.to_csv("sb.csv")
+
+    def display_leaderboard(self):
+        dl = pd.read_csv("sb.csv", names=self.scoreboard, skiprows=[0])
+        sort_by = "Time"
+        ascend = True
+        print("\n", dl.sort_values(by=sort_by, ascending=ascend).head(5))
+        while True:
+            action = input("\nEnter (s) to sort or (b) to back: ").lower()
+            if action == "s":
+                while True:
+                    try:
+                        sort_by, ascend = input("E.g. move true (move column will be sorted in ascending order): ").split()
+                    except ValueError():
+                        print("Wrong input, try again..")
+                    else:
+                        if sort_by.lower() in ["time", "moves", "name"] and ascend.lower() in ["true", "false"]:
+                            if ascend.lower() == "false":
+                                ascend = False
+                            else:
+                                ascend = True
+                            print("\n", dl.sort_values(by=sort_by.capitalize(), ascending=ascend).head(5))
+                            break
+                        else:
+                            print("Wrong input, try again..")
+                            continue
+
+            elif action == "b":
+                main_menu()
+                break
+
+            else:
+                print("Wrong input, try again..")
 
 class BreakException(Exception):
     pass
@@ -371,8 +412,7 @@ class Board():
             end_time = time.time()
             elapsed_time = (end_time - start_time)
             print("You lost! Elapsed time", format(elapsed_time,".3f"), "seconds.")
-            action = ""
-            while action not in ["m", "q"]:
+            while True:
                 action = input("Enter (m) for main menu, (r) to restart or (q) to quit: ").lower()
                 if action == "m":
                     main_menu()
@@ -398,6 +438,22 @@ class Board():
                 print("", item, end=" |" if index % self.width else "\n")
 
             print("Congrats! You completed the board in", format(elapsed_time,".3f"), "seconds")
+
+            while True:
+                action = input("Do you want to save your score?\n(Y/N): ").lower()
+                if action == "y":
+                    nickname = input("Your nickname: ")
+                    tm = round(elapsed_time, 3)
+                    mov = move
+                    lb = Leaderboard()
+                    lb.update_leaderboard(nickname, tm, mov)
+                    print("Saved succesfully!\n")
+
+                elif action == "n":
+                    break
+
+                else:
+                    print("Wrong input, try again..")
 
             while True:
                 action = input("Enter (m) for main menu, (r) to restart or (q) to quit: ").lower()
@@ -479,44 +535,49 @@ def game_setup():
     set_wordbook = Wordbook()
     set_wordbook.create_dictionary() # create dictionary for spell checker if not included
 
+    set_leaderboard = Leaderboard()
+    set_leaderboard.create_leaderboard()
+
     print("Welcome to minesweeper game")
 
 def main_menu():
     """
     Main menu
     """
+    dictionary = Wordbook()
+    get_leadeboard = Leaderboard()
     while True:
-        action = input("\n __MAIN MENU__\n      Play\n  Leaderboard\n\nEnter (p) to start a game or (l) to see leaderboards: ")
+        action = input("\n __MAIN MENU__\n      Play\n  Leaderboard\n\nEnter (p) to play a game, (l) to view leaderboard or (q) to quit: ").lower()
         if action == "p":
+            print("\nYou can play classic game, with three difficulty levels, challenge yourself with TimeRush mode or create your own board in god mode\n")
+            print(" __GAME MODES__\n    Standart\n    No guess\n    Timerush\n      God")
+            while True:
+                global game_mode
+                game_mode = input("\nEnter game mode or (b) to back: ").lower()
+                if game_mode == "b":
+                    main_menu()
+                    break
+                else:
+                    dictionary.check_if_in_dict(game_mode)
+                if answer == "y":
+                    break
+                elif answer == "n":
+                    continue
+
+            game_mode = dictionary.get_word()
             run_game()
             break
         
         elif action == "l":
-            pass
+            get_leadeboard.display_leaderboard()
 
+        elif action == "q":
+            quit()
         else:
-            print("No such a category")
+            print("Wrong input, try again..")
 
 def run_game():
-    dictionary = Wordbook()
-    print("\nYou can play classic game, with three difficulty levels, challenge yourself with TimeRush mode or create your own board in god mode\n")
-    print(" __GAME MODES__\n    Standart\n    No guess\n    Timerush\n      God")
-    while True:
-        global game_mode
-        game_mode = input("\nEnter game mode or (b) to back: ").lower()
-        if game_mode == "b":
-            main_menu()
-            break
-        else:
-            dictionary.check_if_in_dict(game_mode)
-        if answer == "y":
-            break
-        elif answer == "n":
-            continue
-
-    game_mode = dictionary.get_word()
-
-    easy = Board(9, 9, 3, 1200)
+    easy = Board(9, 9, 2, 1200)
     medium = Board(16, 16, 40, 1200)
     advance = Board(16, 30, 100, 1200)
 
@@ -542,7 +603,7 @@ def run_game():
             advance.play_game()
 
         elif difficulty == "b":
-            run_game()
+            main_menu()()
 
     elif game_mode == "noguess":
         print("\nIn NOGUESS mode, a starting position is provided, and you never need to guess to complete the board.\n")
@@ -567,14 +628,14 @@ def run_game():
             advance.play_game()
         
         elif difficulty == "b":
-            run_game()
+            main_menu()()
 
     elif game_mode == "timerush":
         print("\nIn TIMERUSH mode you race against the clock, after each round time to complete the board is decreased dramatically.\nFirst round lasts 9min, 5 rounds must be completed to win.\n")
         while True:
-            action = input("Enter (s) to start or (b) to back: ")
+            action = input("Enter (s) to start or (b) to back: ").lower()
             if action == "b":
-                run_game()
+                main_menu()
             
             elif action == "s":
                 break
@@ -607,12 +668,27 @@ def run_game():
         else:
             print("You lost!")
 
+        while True:
+            action = input("Enter (m) for main menu, (r) to restart or (q) to quit: ").lower()
+            if action == "m":
+                main_menu()
+                break
+
+            elif action == "r":
+                run_game()
+
+            elif action == "q":
+                print("Ending..")
+                quit()
+
+            else:
+                print("Wrong input, try again..")
     elif game_mode == "god":
         print("\nIn GOD mode, you can create custom board\n")
         while True:
-            action = input("Enter (s) to start or (b) to back: ")
+            action = input("Enter (s) to start or (b) to back: ").lower()
             if action == "b":
-                run_game()
+                main_menu()
             
             elif action == "s":
                 break
