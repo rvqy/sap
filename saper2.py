@@ -18,7 +18,7 @@ class Leaderboard():
 
     def create_leaderboard(self):
         if os.path.exists("sb.csv"):
-            print('file already exists')
+            pass
         else:
             df = pd.DataFrame(self.scoreboard)
             df.to_csv("sb.csv")
@@ -541,7 +541,7 @@ class Wordbook():
         json_object = json.dumps(self.words_data, indent = 6)
         dict_name = 'my_words.json'
         if os.path.exists(dict_name):
-            print('file already exists')
+           pass
         else:
             with open(dict_name, 'w') as outfile:
                 outfile.write(json_object)
@@ -586,7 +586,7 @@ def game_setup():
     set_leaderboard = Leaderboard()
     set_leaderboard.create_leaderboard()
 
-    print("Welcome to minesweeper game")
+    print("Welcome to Terminal Blaster game")
 
 def main_menu():
     """
@@ -625,9 +625,9 @@ def main_menu():
             print("Wrong input, try again..")
 
 def run_game():
-    easy = Board(9, 9, 1, 1200)
-    medium = Board(16, 16, 4, 1200)
-    advance = Board(16, 30, 10, 1200)
+    easy = Board(9, 9, 10, 1200)
+    medium = Board(16, 16, 40, 1200)
+    advance = Board(16, 30, 100, 1200)
 
     if game_mode == "standart":
         print("\nIn STANDART mode, a starting position is not provided, and you can hit bomb on first move.\n")
