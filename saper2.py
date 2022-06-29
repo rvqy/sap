@@ -11,7 +11,9 @@ class Leaderboard():
         self.scoreboard = {
             'Name': [],
             'Time': [],
-            'Moves': []
+            'Mode': [],
+            'Difficulty' : [],
+            'Moves' : []
           }
 
     def create_leaderboard(self):
@@ -21,35 +23,74 @@ class Leaderboard():
             df = pd.DataFrame(self.scoreboard)
             df.to_csv("sb.csv")
 
-    def update_leaderboard(self, name, score , moves):
+    def update_leaderboard(self, name, score , moves, mode, difficulty):
         df = pd.read_csv("sb.csv",names=self.scoreboard, skiprows=[0])
-        df.loc[df.shape[0]] = [name, score, moves]
+        df.loc[df.shape[0]] = [name, score, mode, difficulty, moves]
         df.to_csv("sb.csv")
 
     def display_leaderboard(self):
         dl = pd.read_csv("sb.csv", names=self.scoreboard, skiprows=[0])
         sort_by = "Time"
         ascend = True
-        print("\n", dl.sort_values(by=sort_by, ascending=ascend).head(5))
+        if dl.shape[0] == 0:
+            print("\nIts empty here :(")
+        else:
+            print("\n", dl.sort_values(by=sort_by, ascending=ascend).head(10))
         while True:
             action = input("\nEnter (s) to sort or (b) to back: ").lower()
             if action == "s":
-                while True:
-                    try:
-                        sort_by, ascend = input("E.g. move true (move column will be sorted in ascending order): ").split()
-                    except ValueError():
-                        print("Wrong input, try again..")
-                    else:
-                        if sort_by.lower() in ["time", "moves", "name"] and ascend.lower() in ["true", "false"]:
-                            if ascend.lower() == "false":
-                                ascend = False
+                if dl.shape[0] == 0:
+                    print("You cant sort empty leaderboard!")
+                else:
+                    while True:
+                        user_sort_order = input("E.g. If you want ascending MODE column type: mode true,\nyou can also sort by two columns: mode true time false\nSort by: ").split()
+                        if len(user_sort_order) == 2:
+                            try:
+                                separate = list(map(str, user_sort_order))
+                                sort_by = separate[0]
+                                ascend = separate[1]
+                            except ValueError:
+                                print("Wrong input, try again..")
                             else:
-                                ascend = True
-                            print("\n", dl.sort_values(by=sort_by.capitalize(), ascending=ascend).head(5))
-                            break
+                                if sort_by.lower() in ["time", "moves", "name", "mode", "difficulty"] and ascend.lower() in ["true", "false"]:
+                                    if ascend.lower() == "false":
+                                        ascend = False
+                                    else:
+                                        ascend = True
+                                    print("\n", dl.sort_values(by=sort_by.capitalize(), ascending=ascend).head(10))
+                                    break
+                                else:
+                                    print("Wrong input, try again..")
+                                    continue
+
+                        if len(user_sort_order) == 4:
+                            try:
+                                separate = list(map(str, user_sort_order))
+                                sort_by = separate[0]
+                                ascend = separate[1]
+                                sort_by2 = separate[2]
+                                ascend2 = separate[3]
+                            except ValueError:
+                                print("Wrong input, try again..")
+                            else:
+                                if (sort_by.lower(), sort_by2.lower() in ["time", "moves", "name", "mode", "difficulty"]) and (ascend.lower(), ascend2.lower() in ["true", "false"]):
+                                    if ascend.lower() == "false":
+                                        ascend = False
+                                    elif ascend.lower() == "true":
+                                        ascend = True
+
+                                    if ascend2.lower() == "false":
+                                        ascend2 = False
+                                    elif ascend2.lower() == "true":
+                                        ascend2 = True
+
+                                    print("\n", dl.sort_values(by=[sort_by.capitalize(), sort_by2.capitalize()], ascending=[ascend, ascend2]).head(10))
+                                    break
+                                else:
+                                    print("Wrong input, try again..")
+                                    continue
                         else:
                             print("Wrong input, try again..")
-                            continue
 
             elif action == "b":
                 main_menu()
@@ -439,15 +480,22 @@ class Board():
 
             print("Congrats! You completed the board in", format(elapsed_time,".3f"), "seconds")
 
-            while True:
+            while True and game_mode != "god":
                 action = input("Do you want to save your score?\n(Y/N): ").lower()
                 if action == "y":
                     nickname = input("Your nickname: ")
                     tm = round(elapsed_time, 3)
                     mov = move
                     lb = Leaderboard()
-                    lb.update_leaderboard(nickname, tm, mov)
+                    if self.bombs == 1:
+                        diff = "Easy"
+                    elif self.bombs == 4:
+                        diff = "Medium"
+                    elif self.bombs == 10:
+                        diff = "Advance"
+                    lb.update_leaderboard(nickname, tm, mov, game_mode, diff)
                     print("Saved succesfully!\n")
+                    break
 
                 elif action == "n":
                     break
@@ -577,9 +625,9 @@ def main_menu():
             print("Wrong input, try again..")
 
 def run_game():
-    easy = Board(9, 9, 2, 1200)
-    medium = Board(16, 16, 40, 1200)
-    advance = Board(16, 30, 100, 1200)
+    easy = Board(9, 9, 1, 1200)
+    medium = Board(16, 16, 4, 1200)
+    advance = Board(16, 30, 10, 1200)
 
     if game_mode == "standart":
         print("\nIn STANDART mode, a starting position is not provided, and you can hit bomb on first move.\n")
