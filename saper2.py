@@ -287,6 +287,7 @@ class Board():
         while (time.time() < start_time + self.timeout):
             while True:
                 user_cell = input("Enter cell position:").split() # user cell position
+                print()
                 if len(user_cell) == 2:
                     try:
                         separate_input = list(map(int, user_cell))
@@ -487,14 +488,14 @@ class Board():
                     tm = round(elapsed_time, 3)
                     mov = move
                     lb = Leaderboard()
-                    if self.bombs == 1:
+                    if self.bombs == 10:
                         diff = "Easy"
-                    elif self.bombs == 4:
+                    elif self.bombs == 40:
                         diff = "Medium"
-                    elif self.bombs == 10:
+                    elif self.bombs == 100:
                         diff = "Advance"
                     lb.update_leaderboard(nickname, tm, mov, game_mode, diff)
-                    print("Saved succesfully!\n")
+                    print("Saved successfully!\n")
                     break
 
                 elif action == "n":
