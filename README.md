@@ -65,36 +65,41 @@ Install with pip:
 ### How to play
 
 * Enter a cell's coordinates to make it visible **X Y** (width, height)
-<figure align="center">
+<p align="center">
 <img src="media/demo1.gif" alt="my alt text" width="550" height=""/>
-<figcaption>[noguess mode] Level easy: grid size 9x9 (8 6 are the coords of S)</figcaption>
-</figure>
+<br>
+<em>[noguess mode] Level easy: grid size 9x9 (8 6 are the coords of S)</em>
+</p>
 
 * Put a **F** at the end of the coordinates to flag a cell **X Y F**
-<figure align="center">
+<p align="center">
 <img src="media/demo2.gif" alt="my alt text" width="550" height=""/>
-<figcaption>Simply repeat the command to unflag a cell </figcaption>
-</figure>
+<br>
+<em>Simply repeat the command to unflag a cell </em>
+</p>
 
 * If you succeed, enter your name to **keep your score**
-<figure align="center">
+<p align="center">
 <img src="media/demo4.gif" alt="my alt text" width="550" height=""/>
-<figcaption>From the main menu, you may access the leaderboard </figcaption>
-</figure>
+<br>
+<em>From the main menu, you may access the leaderboard </em>
+</p>
 
 ### Other
 
 * The scoreboard has a sorting feature
-<figure align="center">
+<p align="center">
 <img src="media/demo5.gif" alt="my alt text" width="550" height=""/>
-<figcaption>Scoreboard only supports standard and noguess modes and always displays the top 10 results. </figcaption>
-</figure>
+<br>
+<em>Scoreboard only supports standard and noguess modes and always displays the top 10 results. </em>
+</p>
 
 * A misspelling will be corrected by the [pyspellchecker](https://pyspellchecker.readthedocs.io/en/latest/#) module
-<figure align="center">
+<p align="center">
 <img src="media/demo3.gif" alt="my alt text" width="550" height=""/>
-<figcaption>Works only for a game modes </figcaption>
-</figure>
+<br>
+<em>Works only for a game modes </em>
+</p>
 
 * You can alter the board size and mines number in the saper2.py file (**not advised**), or you can just switch to god mode. Open **saper.py** in your code editor use shortcut `ctrl + f` and search for **def run_game():**
 
